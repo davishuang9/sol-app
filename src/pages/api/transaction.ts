@@ -9,20 +9,25 @@ const prisma = new PrismaClient();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST" && req.body.hydrateTable) {
-    const { publicKey } = req.body;
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        OR: [
-          { from: publicKey.toString() },
-          { to: publicKey.toString() },
-        ]
-      }
-    });
-    const serializableTransactions: SerializableTranaction[] = transactions.map((transaction: Transaction) => ({
-      ...transaction,
-      createdAt: transaction.createdAt.toDateString(),
-    }));
-    res.status(200).json(serializableTransactions);
+    try {
+      const { publicKey } = req.body;
+      const transactions = await prisma.transaction.findMany({
+        where: {
+          OR: [
+            { from: publicKey.toString() },
+            { to: publicKey.toString() },
+          ]
+        }
+      });
+      const serializableTransactions: SerializableTranaction[] = transactions.map((transaction: Transaction) => ({
+        ...transaction,
+        createdAt: transaction.createdAt.toDateString(),
+      }));
+      res.status(200).json(serializableTransactions);
+    } catch (e) {
+      console.log(`Error: ${e}`);
+      res.status(500).json({ message: "Something went wrong", error: e });
+    }
   } else if (req.method === "POST") {
     try {
       // TODO: boundary checking for decimal amount of sol
