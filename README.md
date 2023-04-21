@@ -6,33 +6,56 @@ First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+Rough design to follow:
+![image](./sol-app.png)
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+## Engineering considerations:
+### NextJS + Vercel + Supabase
+Decided to use these 3 technologies for ease of deployment as the requirements as stated required a FE, a BE and DB to do it properly.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+### Why NextJS?
+- React was a given
+- Would benefit from having a serverless BE to help process requests to DB and to Solana blockchain
+  - Ended up putting transaction creation logic in the FE code anyway for the sake of time
+- modern React framework comes with a lot of features including SSR, routing, and developer ease of use that aren't really highlighted by the app as is
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### Why Vercel?
+- Vercel is native for NextJS -- again, ease of use
 
-## Learn More
+### Why Supabase + Prisma?
+- Developer familiarity... that's like really the only reason why
 
-To learn more about Next.js, take a look at the following resources:
+### Why Redux, MUI, Fuse, etc.?
+- Uhh, again developer familiarity... so you get the theme
+- Generally, well documented and simple enough to learn it quickly and implement it
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Timeline
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+I was aiming to get some sort of working set of features done as quickly as possible and then iterate on it, adding Redux and MUI. The basic features I aimed for:
+- Connecting / disconnecting wallet
+- Sending Sol
+- Autocomplete with suggestions (not yet plugged into search)
+- Tabular layout of transactions pulled from DB (not state)
 
-## Deploy on Vercel
+Features on next iteration:
+- Modals for sending Sol, transaction details
+- Snackbar for success
+- Loading spinners
+- Fuse search on table
+- Redux store rerendering table after sending Sol (helps relieve the Sol sending component from needing to directly trigger a rerender on the table)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Improvements:
+- Redux store is storing a flat list of transaction details which works but is not optimized for speed or connectivity
+  - Can move towards treating the store as a local cache of transactions and have updates to DB reach eventual consistency (e.g. write-behind cache) to optimize for client performance
+  - Can move towards the store just keeping track of transaction IDs and asking for specific transaction in a follow-up requests to populate table (more scalable approach to handling transactions app-wide)
+- UI / UX
+  - Utilizing theme, colors, etc.
+  - More clear interaction with modals, x-buttons to close, closing after transaction is complete, etc.
+  - Laying out the UI more with Stacks (flexbox), Boxes, etc.
+  - Can aim for a more sleek UX with asking for Wallet connection before showing the rest of the UI (full page modal or redirect), better transitions with what happens when wallet disconnects, etc.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
