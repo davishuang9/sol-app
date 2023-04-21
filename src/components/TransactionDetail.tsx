@@ -26,7 +26,7 @@ export default function TransactionDetails({ transaction, isOpen, handleClose }:
             Transaction details
           </Typography>
           {Object.entries(nonNullTransaction).map((entry: any) => (
-            <Typography variant="body1" gutterBottom>
+            <Typography key={`${entry[0]}-${entry[1]}`} variant="body1" gutterBottom>
               {entry[0]}: {entry[1]}
             </Typography>
           ))}
