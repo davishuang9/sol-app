@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { SerializableTranaction } from "../pages/api/transaction";
 import Fuse from "fuse.js";
 import TransactionDetails from "./TransactionDetail";
+import axios from "axios";
 
 const COLUMNS: GridColDef[] = [
   { field: "signature", headerName: "Signature", width: 200 },
@@ -36,14 +37,8 @@ export default function Table() {
     }
 
     const getTransactions = async () => {
-      const response = await fetch("/api/transaction", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ publicKey, hydrateTable: true })
-      });
-      const _transactions = await response.json();
+      const response = await axios.post("/api/transaction", { publicKey, hydrateTable: true });
+      const _transactions = response.data;
       fuse.setCollection(_transactions);
       setTransactions(_transactions);
       setFilteredTransactions(_transactions);

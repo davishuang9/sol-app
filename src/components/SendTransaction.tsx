@@ -5,6 +5,7 @@ import { Keypair, PublicKey, SystemProgram, Transaction } from "@solana/web3.js"
 import { FormEvent, useCallback, useState } from "react";
 import { WalletIcon } from "@solana/wallet-adapter-material-ui";
 import { LoadingButton } from "@mui/lab";
+import axios from "axios";
 
 export default function SendTransaction() {
   const [isLoading, setIsLoading] = useState(false);
@@ -63,13 +64,7 @@ export default function SendTransaction() {
       from: publicKey,
       to: address.value
     };
-    await fetch("/api/transaction", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(transactionData)
-    });
+    await axios.post("/api/transaction", transactionData);
     setIsLoading(false);
     setSignature(signature);
   };
