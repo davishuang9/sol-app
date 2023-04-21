@@ -1,8 +1,8 @@
-import { SerializableTranaction } from "@/src/pages/api/transaction";
+import { SerializableTransaction } from "@/src/pages/api/transaction";
 import { Box, Modal, Typography } from "@mui/material";
 import { ReactEventHandler } from "react";
 
-export default function TransactionDetails({ transaction, isOpen, handleClose }: { transaction: SerializableTranaction | null; isOpen: boolean; handleClose: ReactEventHandler; }) {
+export default function TransactionDetails({ transaction, isOpen, handleClose }: { transaction: SerializableTransaction | null; isOpen: boolean; handleClose: ReactEventHandler; }) {
   const nonNullTransaction = transaction || {};
   return (
     <Modal

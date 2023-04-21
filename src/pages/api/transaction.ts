@@ -1,16 +1,20 @@
 import { PrismaClient, Transaction } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-export type SerializableTranaction = Omit<Transaction, "createdAt"> & {
+export type SerializableTransaction = Omit<Transaction, "createdAt"> & {
   createdAt: string;
 };
 
 const prisma = new PrismaClient();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === "POST" && req.body.hydrateTable) {
+  if (req.method === "GET") {
     try {
-      const { publicKey } = req.body;
+      const { publicKey } = req.query;
+      if (!publicKey) {
+        res.status(400).json({ message: "Public key not found" });
+        return;
+      }
       const transactions = await prisma.transaction.findMany({
         where: {
           OR: [
@@ -19,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ]
         }
       });
-      const serializableTransactions: SerializableTranaction[] = transactions.map((transaction: Transaction) => ({
+      const serializableTransactions: SerializableTransaction[] = transactions.map((transaction: Transaction) => ({
         ...transaction,
         createdAt: transaction.createdAt.toDateString(),
       }));

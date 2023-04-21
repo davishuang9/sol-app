@@ -6,12 +6,15 @@ import { FormEvent, useCallback, useState } from "react";
 import { WalletIcon } from "@solana/wallet-adapter-material-ui";
 import { LoadingButton } from "@mui/lab";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { addTransaction } from "@/src/reducers/transaction";
 
 export default function SendTransaction() {
   const [isLoading, setIsLoading] = useState(false);
   const [signature, setSignature] = useState("");
   const { connection } = useConnection();
   const { publicKey, sendTransaction, wallet } = useWallet();
+  const dispatch = useDispatch();
 
   const handleSendTransaction = useCallback(async (toAddressString: string, solAmount: number) => {
     if (!publicKey) throw new WalletNotConnectedError();
@@ -64,7 +67,8 @@ export default function SendTransaction() {
       from: publicKey,
       to: address.value
     };
-    await axios.post("/api/transaction", transactionData);
+    const response = await axios.post("/api/transaction", transactionData);
+    dispatch(addTransaction(response.data));
     setIsLoading(false);
     setSignature(signature);
   };

@@ -2,10 +2,12 @@ import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { Autocomplete, TextField } from "@mui/material";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useEffect, useState } from "react";
-import { SerializableTranaction } from "../pages/api/transaction";
+import { SerializableTransaction } from "../pages/api/transaction";
 import Fuse from "fuse.js";
 import TransactionDetails from "./TransactionDetail";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { TransactionStateType, setAllTransactions, transactionStateComparator } from "@/src/reducers/transaction";
 
 const COLUMNS: GridColDef[] = [
   { field: "signature", headerName: "Signature", width: 200 },
@@ -18,34 +20,37 @@ const COLUMNS: GridColDef[] = [
 const FUSE_OPTIONS = {
   keys: ["signature", "from", "to"]
 };
-const fuse = new Fuse([] as SerializableTranaction[], FUSE_OPTIONS);
+const fuse = new Fuse([] as SerializableTransaction[], FUSE_OPTIONS);
 
 export default function Table() {
   const { publicKey } = useWallet();
-  const [transactions, setTransactions] = useState<SerializableTranaction[]>([]);
-  const [filteredTransactions, setFilteredTransactions] = useState<SerializableTranaction[]>([]);
+  // const [transactions, setTransactions] = useState<SerializableTransaction[]>([]);
+  const transactions = useSelector((state: { transaction: TransactionStateType; }) => state.transaction.transactions, transactionStateComparator);
+  // console.log("transactions", transactions);
+  const dispatch = useDispatch();
+  const [filteredTransactions, setFilteredTransactions] = useState<SerializableTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
-  const [transactionForDetail, setTransactionForDetail] = useState<SerializableTranaction | null>(null);
+  const [transactionForDetail, setTransactionForDetail] = useState<SerializableTransaction | null>(null);
 
   useEffect(() => {
     if (!publicKey) {
-      setTransactions([]);
+      dispatch(setAllTransactions([]));
       setFilteredTransactions([]);
       setSearchText("");
       return;
     }
 
     const getTransactions = async () => {
-      const response = await axios.post("/api/transaction", { publicKey, hydrateTable: true });
+      const response = await axios.get(`/api/transaction?publicKey=${publicKey}`);
       const _transactions = response.data;
       fuse.setCollection(_transactions);
-      setTransactions(_transactions);
+      dispatch(setAllTransactions(_transactions));
       setFilteredTransactions(_transactions);
       setIsLoading(false);
     };
     getTransactions();
-  }, [publicKey]);
+  }, [publicKey, transactions]);
 
   useEffect(() => {
     if (searchText.length > 0) {
@@ -64,13 +69,13 @@ export default function Table() {
     setTransactionForDetail(null);
   };
 
-  console.log("filteredTransactions", filteredTransactions);
+  // console.log("filteredTransactions", filteredTransactions);
   return (
     <div>
       {/* TOOD: improve autocomplete options with some kind of fuzzy search with search score */}
       <Autocomplete
         disablePortal
-        options={transactions.flatMap((transaction: SerializableTranaction) => ([
+        options={transactions.flatMap((transaction: SerializableTransaction) => ([
           { label: transaction.signature },
           { label: transaction.from },
           { label: transaction.to }
